@@ -1,0 +1,3 @@
+rootProject.name = 'easy-tool'
+include 'easy-conf'
+

@@ -1,0 +1,59 @@
+allprojects {
+    apply plugin: 'idea'
+    apply plugin: 'maven-publish'
+    group = 'com.sph.easytool'
+    version = '0.0.1-SNAPSHOT'
+
+    ext {
+        scalaVersion = '2.11.12'
+        scalatestVersion = '3.0.8'
+        scalatestplusJunitVersion = '1.0.0-M2'
+        scalaBinaryVersion = '2.11'
+        junitVersion = '4.12'
+    }
+
+}
+
+
+subprojects {
+    apply plugin: 'java-library'
+    apply plugin: 'scala'
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
+
+    java {
+        withSourcesJar()
+        withJavadocJar()
+
+    }
+
+    publishing {
+        publications {
+            maven(MavenPublication) {
+                artifactId = project.name
+                from components.java
+            }
+        }
+    }
+
+    repositories {
+        mavenLocal()
+        maven { url "https://maven.aliyun.com/repository/public" }
+        mavenCentral()
+    }
+
+    dependencies {
+        implementation group: 'org.scala-lang', name: 'scala-library', version: scalaVersion
+        compileOnly group: 'org.scala-lang', name: 'scala-compiler', version: scalaVersion
+        testImplementation group: 'junit', name: 'junit', version: junitVersion
+        testImplementation group: 'org.scalatest', name: 'scalatest_' + scalaBinaryVersion, version: scalatestVersion
+        testImplementation group: 'org.scalatestplus', name: 'scalatestplus-junit_' + scalaBinaryVersion, version: scalatestplusJunitVersion
+
+    }
+
+    task generateSrcDirs() {
+        sourceSets*.scala.srcDirs*.each { it.mkdirs() }
+        sourceSets*.resources.srcDirs*.each { it.mkdirs() }
+    }
+
+}
