@@ -1,4 +1,6 @@
 description = 'easy-conf'
 
 dependencies {
+    api group: 'org.yaml', name: 'snakeyaml', version: snakeyamlVersion
+    api group: 'org.slf4j', name: 'slf4j-api', version: slf4jVersion
 }

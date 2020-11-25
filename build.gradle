@@ -10,6 +10,8 @@ allprojects {
         scalatestplusJunitVersion = '1.0.0-M2'
         scalaBinaryVersion = '2.11'
         junitVersion = '4.12'
+        slf4jVersion = '1.7.30'
+        snakeyamlVersion = '1.17'
     }
 
 }
