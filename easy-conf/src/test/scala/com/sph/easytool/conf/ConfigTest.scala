@@ -22,6 +22,9 @@ class ConfigTest extends AnyFunSuite {
     assertResult("rt02")(app02.getProp("app.test02"))
     assertResult("rt03")(app02.getProp("app.test03"))
     assertResult("rt01")(app03.getProp("app.test01"))
+    assertResult("rt02-rt01")(app03.getProp("app.test02"))
+    assertResult("rt03-drt031")(app03.getProp("app.test03"))
+    assertResult("rt04-drt041")(app03.getProp("app.test04"))
   }
 
 }

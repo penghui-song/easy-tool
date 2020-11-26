@@ -38,6 +38,7 @@ class Config(
 ) extends Logging {
 
   private val confMap: mutable.Map[String, Props] = mutable.Map()
+  private val placeholderParser: PlaceholderParser = PlaceholderParser()
 
   init()
 
@@ -83,7 +84,7 @@ class Config(
       )
     }
     if (hasArgs) props.putAll(argsProps)
-    confMap(confPrefix) = props
+    confMap(confPrefix) = placeholderParser.parse(props)
   }
 
   private def tryFailAndLogWarnNecessary[A](

@@ -37,3 +37,29 @@ Config类需要三个参数：
 5. 指定profile的classpath下配置文件
 6. classpath下配置文件
 
+#### 占位符解析
+
+通常配置文件中需要引用其它配置项的值，该模块支持将类似的占位符形式（${conf01:default_value}）解析为配置的实际值。例如配置
+
+```yaml
+app:
+  conf01: c01
+  conf02: ${app.conf01}
+  conf03: ${app.conf01:c011}
+  conf04: ${app.conf041:c041}
+  conf05: "${ app.conf051 : c051  }""
+```
+
+将转化如下：
+
+```yaml
+app:
+  conf01: c01
+  conf02: c01
+  conf03: c01
+  conf04: c041
+  conf05: c051
+```
+
+
+
