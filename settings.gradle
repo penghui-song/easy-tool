@@ -1,3 +1,4 @@
 rootProject.name = 'easy-tool'
 include 'easy-conf'
+include 'easy-conf-yml'
 

@@ -1,0 +1,8 @@
+name: app01
+source_field:
+  - field01
+  - field02
+source_config:
+  source: source01
+  sink: sink01
+status: RUNNING

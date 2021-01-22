@@ -12,6 +12,9 @@ allprojects {
         junitVersion = '4.12'
         slf4jVersion = '1.7.30'
         snakeyamlVersion = '1.17'
+        fastJsonVersion = '1.2.75'
+        json4sVersion = '3.2.11'
+        prop2jsonVersion = '5.2.0'
     }
 
 }

@@ -1,11 +1,10 @@
 package com.sph.easytool.conf
 
-import java.io.InputStream
-import java.util.Properties
-
 import com.sph.easytool.conf.Config.{ACTIVE_PROFILE_SUFFIX, DEFAULT_CONFIG}
 import org.yaml.snakeyaml.Yaml
 
+import java.io.InputStream
+import java.util.Properties
 import scala.collection.JavaConversions._
 import scala.collection.mutable
 import scala.io.Source
@@ -32,9 +31,9 @@ import scala.util.{Failure, Success, Try}
   * @param configs configs you will use
   */
 class Config(
-    args: Array[String],
-    configs: Seq[String],
-    noArgConfigs: Seq[String]
+    args: Array[String] = Array(),
+    configs: Seq[String] = Seq(DEFAULT_CONFIG),
+    noArgConfigs: Seq[String] = Seq()
 ) extends Logging {
 
   private val confMap: mutable.Map[String, Props] = mutable.Map()
@@ -206,7 +205,7 @@ object Config {
   private val ACTIVE_PROFILE_SUFFIX = ".profile"
 
   def apply(
-      args: Array[String],
+      args: Array[String] = Array(),
       configs: Seq[String] = Seq(DEFAULT_CONFIG),
       noArgConfigs: Seq[String] = Seq()
   ): Config = new Config(args, configs, noArgConfigs)

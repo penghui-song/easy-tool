@@ -47,7 +47,7 @@ app:
   conf02: ${app.conf01}
   conf03: ${app.conf01:c011}
   conf04: ${app.conf041:c041}
-  conf05: "${ app.conf051 : c051  }""
+  conf05: "${ app.conf051 : c051  }"
 ```
 
 将转化如下：
@@ -61,5 +61,40 @@ app:
   conf05: c051
 ```
 
+#### 样例类绑定
 
+Props类提供绑定scala样例类方法，如下
+
+```scala
+def bind[T <: Product](
+      formats: Formats = DefaultFormats
+  )(implicit mf: scala.reflect.Manifest[T]): T
+```
+
+formats用法可参考json4s，主要用于注册枚举类的转换，例如：
+
+```scala
+import java.util
+
+//case class
+case class Application(
+                        name: String,
+                        sourceField: Seq[String],
+                        sourceConfig: SourceConfig,
+                        status: Status = FINISHED
+                      )
+
+case class SourceConfig(source: String, sink: String)
+
+object Status extends util.Enumeration {
+  type Status = Value
+  val RUNNING, FINISHED = Value
+}
+
+//usage
+val conf = Config(Array(), Seq("bind01"))
+val bind01 = conf.getConfig("bind01")
+val formats = DefaultFormats + new EnumNameSerializer(Status)
+val application = bind01.bind[Application](formats)
+```
 
