@@ -30,12 +30,13 @@ Config类需要三个参数：
 
 #### 优先级（由高到低）
 
-1. 命令行参数
-2. 指定的jar包外配置文件
-3. 指定profle的jar包外配置文件
-4. jar包外配置文件
-5. 指定profile的classpath下配置文件
-6. classpath下配置文件
+1. nacos配置中心
+2. 命令行参数
+3. 指定的jar包外配置文件
+4. 指定profle的jar包外配置文件
+5. jar包外配置文件
+6. 指定profile的classpath下配置文件
+7. classpath下配置文件
 
 #### 占位符解析
 

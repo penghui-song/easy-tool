@@ -15,6 +15,7 @@ allprojects {
         fastJsonVersion = '1.2.75'
         json4sVersion = '3.2.11'
         prop2jsonVersion = '5.2.0'
+        nacosVersion = '1.4.1'
     }
 
 }

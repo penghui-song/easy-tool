@@ -1,6 +1,7 @@
 package com.sph.easytool.conf
 
-import com.sph.easytool.conf.Config.{ACTIVE_PROFILE_SUFFIX, DEFAULT_CONFIG}
+import com.alibaba.nacos.api.NacosFactory
+import com.sph.easytool.conf.Config._
 import org.yaml.snakeyaml.Yaml
 
 import java.io.InputStream
@@ -38,6 +39,7 @@ class Config(
 
   private val confMap: mutable.Map[String, Props] = mutable.Map()
   private val placeholderParser: PlaceholderParser = PlaceholderParser()
+  private val yaml = new Yaml()
 
   init()
 
@@ -51,20 +53,20 @@ class Config(
 
   private def initForOne(
       confPrefix: String,
-      argsProps: Properties,
+      argsProps: Props,
       hasArgs: Boolean
   ): Unit = {
     val props = new Props
     tryFailAndLogWarnNecessary { props.putAll(fromClassPathAuto(confPrefix)) }
     tryFailAndLogWarnNecessary { props.putAll(fromFile(confPrefix)) }
     val profileConf = confPrefix + ACTIVE_PROFILE_SUFFIX
-    val profileActive = argsProps.getProperty(
+    val profileActive = argsProps.getString(
       profileConf,
-      props.getOrElse(profileConf, "")
+      props.getString(profileConf, "")
     )
-    val externalFile = argsProps.getProperty(
+    val externalFile = argsProps.getString(
       confPrefix,
-      props.getOrElse(confPrefix, "")
+      props.getString(confPrefix, "")
     )
     if (profileActive.nonEmpty) {
       tryFailAndLogWarnNecessary {
@@ -83,6 +85,12 @@ class Config(
       )
     }
     if (hasArgs) props.putAll(argsProps)
+    if (props.getBoolean(NACOS_CONFIG_ENABLED)) {
+      props.putAll(fromNacos(props))
+      log.info(
+        s"$confPrefix conf is overwritten by nacos config"
+      )
+    }
     confMap(confPrefix) = placeholderParser.parse(props)
   }
 
@@ -96,7 +104,20 @@ class Config(
     }
   }
 
-  private def fromClassPathAuto(filePrefix: String): Properties = {
+  private def fromNacos(props: Props): Props = {
+    val properties = new Properties()
+    properties.putAll(props.toMap(NACOS_CONFIG))
+    val configService = NacosFactory.createConfigService(properties)
+    val content = configService.getConfig(
+      props.getString(NACOS_CONFIG_DATA_ID),
+      props.getString(NACOS_CONFIG_GROUP),
+      props.getLong(NACOS_CONFIG_TIMEOUT)
+    )
+    val ymlMap: java.util.HashMap[String, Object] = yaml.load(content)
+    ymlMap2Props(ymlMap)
+  }
+
+  private def fromClassPathAuto(filePrefix: String): Props = {
     var in: InputStream = this.getClass.getResourceAsStream(s"/$filePrefix.yml")
     var file: String = ""
     if (in == null) {
@@ -113,11 +134,11 @@ class Config(
     fromClassPath(file)
   }
 
-  private def fromClassPath(file: String): Properties = {
+  private def fromClassPath(file: String): Props = {
     if (isYml(file)) {
       fromClassPathYml(file)
     } else {
-      val ps = new Properties()
+      val ps = Props()
       val in = this.getClass.getResourceAsStream("/" + file)
       in match {
         case null => log.debug(s"classpath file not exists : $file")
@@ -127,67 +148,61 @@ class Config(
     }
   }
 
-  private def fromClassPathYml(file: String): Properties = {
+  private def fromClassPathYml(file: String): Props = {
     val ymlFile = this.getClass.getResourceAsStream("/" + file)
-    val ps = new Properties()
+    val ps = Props()
     ymlFile match {
       case null => log.debug(s"classpath file not exists : $file")
       case _ =>
-        val yaml = new Yaml()
-        val ymlMap =
-          yaml.load(ymlFile).asInstanceOf[java.util.HashMap[String, Object]]
-        ps.putAll(ymlMap2Properties(ymlMap))
+        val ymlMap: java.util.HashMap[String, Object] = yaml.load(ymlFile)
+        ps.putAll(ymlMap2Props(ymlMap))
     }
     ps
   }
 
-  private def ymlMap2Properties(
+  private def ymlMap2Props(
       ymlMap: java.util.Map[String, Object]
-  ): Properties = {
-    val ps = new Properties()
+  ): Props = {
+    val ps = Props()
     ymlMap.foreach(ele => {
       ele._2 match {
-        case e if e == null => ps.setProperty(ele._1, "")
+        case e if e == null => ps.put(ele._1, "")
         case e: java.util.Map[_, _] =>
           ps.putAll(
-            ymlMap2Properties(
+            ymlMap2Props(
               e.map(m => (ele._1 + "." + m._1, m._2.asInstanceOf[Object]))
             )
           )
-        case e: java.util.List[_] => ps.setProperty(ele._1, e.mkString(","))
-        case _                    => ps.setProperty(ele._1, ele._2.toString)
+        case e: java.util.List[_] => ps.put(ele._1, e.mkString(","))
+        case _                    => ps.put(ele._1, ele._2.toString)
       }
     })
     ps
   }
 
-  private def fromArgs(args: Array[String]): Properties = {
-    val ps = new Properties()
+  private def fromArgs(args: Array[String]): Props = {
+    val ps = Props()
     val argsPair = args.map(_.trim).partition(_.startsWith("--"))
     argsPair._1
       .zip(argsPair._2)
-      .foreach(pair => ps.setProperty(pair._1.drop(2), pair._2))
+      .foreach(pair => ps.put(pair._1.drop(2), pair._2))
     ps
   }
 
-  private def fromFile(file: String): Properties = {
+  private def fromFile(file: String): Props = {
     if (isYml(file)) {
       fromFileYml(file)
     } else {
-      val ps = new Properties()
-      ps.load(Source.fromFile(file).reader())
-      ps
+      Props().load(Source.fromFile(file).reader())
     }
   }
 
-  private def fromFileYml(file: String): Properties = {
-    val ps = new Properties()
-    val yaml = new Yaml()
+  private def fromFileYml(file: String): Props = {
+    val ps = Props()
     val confMap = yaml
       .load(Source.fromFile(file).reader())
       .asInstanceOf[java.util.HashMap[String, Object]]
-    ps.putAll(ymlMap2Properties(confMap))
-    ps
+    ps.putAll(ymlMap2Props(confMap))
   }
 
   private def isYml(file: String): Boolean = {
@@ -203,6 +218,11 @@ object Config {
 
   private val DEFAULT_CONFIG: String = "app"
   private val ACTIVE_PROFILE_SUFFIX = ".profile"
+  private val NACOS_CONFIG = "nacos"
+  private val NACOS_CONFIG_ENABLED = NACOS_CONFIG + ".enabled"
+  private val NACOS_CONFIG_DATA_ID = NACOS_CONFIG + ".data_id"
+  private val NACOS_CONFIG_GROUP = NACOS_CONFIG + ".group"
+  private val NACOS_CONFIG_TIMEOUT = NACOS_CONFIG + ".timeout"
 
   def apply(
       args: Array[String] = Array(),
@@ -210,14 +230,4 @@ object Config {
       noArgConfigs: Seq[String] = Seq()
   ): Config = new Config(args, configs, noArgConfigs)
 
-  /**
-    * 获取key的所有子集并转为map
-    */
-  def toMap(key: String, props: Properties): Map[String, String] = {
-    props
-      .filter(!_._1.equals(key))
-      .filter(_._1.startsWith(key))
-      .map(p => (p._1.diff(key + "."), p._2))
-      .toMap
-  }
 }

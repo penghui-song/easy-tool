@@ -8,4 +8,5 @@ dependencies {
     api group: 'org.json4s', name: 'json4s-jackson_2.11', version: json4sVersion
     api group: 'org.json4s', name: 'json4s-ext_2.11', version: json4sVersion
     api group: 'pl.jalokim.propertiestojson', name: 'java-properties-to-json', version: prop2jsonVersion
+    api group: 'com.alibaba.nacos', name: 'nacos-client', version: nacosVersion
 }

@@ -1,7 +1,7 @@
 package com.sph.easytool.conf
 
 import com.sph.easytool.conf.ConfigTest.Status.{FINISHED, Status}
-import com.sph.easytool.conf.ConfigTest.{Application, Status}
+import com.sph.easytool.conf.ConfigTest.{Application, SourceConfig, Status}
 import org.json4s.DefaultFormats
 import org.json4s.ext.EnumNameSerializer
 import org.junit.runner.RunWith
@@ -19,16 +19,16 @@ class ConfigTest extends AnyFunSuite {
     val app01 = conf.getConfig("app01")
     val app02 = conf.getConfig("app02")
     val app03 = conf.getConfig("app03")
-    assertResult("t01")(app01.getProp("app.test01"))
-    assertResult("rt02")(app01.getProp("app.test02"))
-    assertResult("trt03")(app01.getProp("app.test03"))
-    assertResult("t01")(app02.getProp("app.test01"))
-    assertResult("rt02")(app02.getProp("app.test02"))
-    assertResult("rt03")(app02.getProp("app.test03"))
-    assertResult("rt01")(app03.getProp("app.test01"))
-    assertResult("rt02-rt01")(app03.getProp("app.test02"))
-    assertResult("rt03-drt031")(app03.getProp("app.test03"))
-    assertResult("rt04-drt041")(app03.getProp("app.test04"))
+    assertResult("t01")(app01.getString("app.test01"))
+    assertResult("rt02")(app01.getString("app.test02"))
+    assertResult("trt03")(app01.getString("app.test03"))
+    assertResult("t01")(app02.getString("app.test01"))
+    assertResult("rt02")(app02.getString("app.test02"))
+    assertResult("rt03")(app02.getString("app.test03"))
+    assertResult("rt01")(app03.getString("app.test01"))
+    assertResult("rt02-rt01")(app03.getString("app.test02"))
+    assertResult("rt03-drt031")(app03.getString("app.test03"))
+    assertResult("rt04-drt041")(app03.getString("app.test04"))
   }
 
   test("testBind") {
@@ -36,7 +36,10 @@ class ConfigTest extends AnyFunSuite {
     val conf = Config(args, Seq("bind01"))
     val bind01 = conf.getConfig("bind01")
     val application = bind01.bind[Application]()
-    application
+    assertResult("app01")(application.name)
+    assertResult(Seq("field01", "field02"))(application.sourceField)
+    assertResult(SourceConfig("source01", "sink01"))(application.sourceConfig)
+    assertResult(Status.FINISHED)(application.status)
   }
 
   test("testBindEnum") {
@@ -45,7 +48,7 @@ class ConfigTest extends AnyFunSuite {
     val bind01 = conf.getConfig("bind01")
     val formats = DefaultFormats + new EnumNameSerializer(Status)
     val application = bind01.bind[Application](formats)
-    application
+    assertResult(Status.RUNNING)(application.status)
   }
 
 }
