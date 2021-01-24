@@ -1,0 +1,8 @@
+job:
+  name: job01
+  source:
+    - source01
+    - source02
+  sink:
+    - sink01
+    - sink02

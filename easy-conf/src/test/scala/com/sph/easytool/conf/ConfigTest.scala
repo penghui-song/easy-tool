@@ -1,5 +1,12 @@
 package com.sph.easytool.conf
 
+import com.alibaba.nacos.api.NacosFactory
+import com.alibaba.nacos.api.config.ConfigType
+import com.sph.easytool.conf.Config.{
+  NACOS_CONFIG,
+  NACOS_CONFIG_DATA_ID,
+  NACOS_CONFIG_GROUP
+}
 import com.sph.easytool.conf.ConfigTest.Status.{FINISHED, Status}
 import com.sph.easytool.conf.ConfigTest.{Application, SourceConfig, Status}
 import org.json4s.DefaultFormats
@@ -7,6 +14,9 @@ import org.json4s.ext.EnumNameSerializer
 import org.junit.runner.RunWith
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatestplus.junit.JUnitRunner
+import org.yaml.snakeyaml.Yaml
+
+import java.util.Properties
 
 @RunWith(classOf[JUnitRunner])
 class ConfigTest extends AnyFunSuite {
@@ -49,6 +59,26 @@ class ConfigTest extends AnyFunSuite {
     val formats = DefaultFormats + new EnumNameSerializer(Status)
     val application = bind01.bind[Application](formats)
     assertResult(Status.RUNNING)(application.status)
+  }
+
+  test("testNacos") {
+    val props = Config(configs = Seq("nacos")).getConfig("nacos")
+    println("Change Before: " + props.getString("job.sink"))
+    val yaml = new Yaml()
+    val properties = new Properties()
+    import scala.collection.JavaConversions._
+    properties.putAll(props.toMap(NACOS_CONFIG))
+    val configService = NacosFactory.createConfigService(properties)
+    configService.publishConfig(
+      props.getString(NACOS_CONFIG_DATA_ID),
+      props.getString(NACOS_CONFIG_GROUP),
+      yaml.dump(
+        yaml.load(this.getClass.getResourceAsStream("/test_nacos_02.yml"))
+      ),
+      ConfigType.YAML.getType
+    )
+    Thread.sleep(5000)
+    println("Change After: " + props.getString("job.sink"))
   }
 
 }

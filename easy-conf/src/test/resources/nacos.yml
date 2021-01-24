@@ -1,0 +1,8 @@
+nacos:
+  enabled: true
+  data_id: test_nacos_01
+  group: test_nacos
+  timeout: 2000
+  serverAddr: atlas.bigdata.cn:8848
+  listener:
+    enabled: true

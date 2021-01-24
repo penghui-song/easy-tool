@@ -30,7 +30,7 @@ class PlaceholderParser(
     props.foreach(p => {
       propsT.put(p._1, parse(p._2, props))
     })
-    propsT
+    props.putAll(propsT)
   }
 
   def parse(value: String, props: Props): String = {
