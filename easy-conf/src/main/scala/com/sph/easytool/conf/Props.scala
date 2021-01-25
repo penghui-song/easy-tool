@@ -117,10 +117,10 @@ class Props extends mutable.HashMap[String, String] {
     val converter = new PropertiesToJsonConverter()
     var jValue = JsonMethods
       .parse(converter.convertToJson(this.asJava))
-      .camelizeKeys
     if (StringUtils.isNoneBlank(prefix))
       jValue = jValue.\\(prefix)
     jValue
+      .camelizeKeys
       .extract[T](formats, mf)
   }
 
