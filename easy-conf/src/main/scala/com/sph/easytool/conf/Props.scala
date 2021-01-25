@@ -1,5 +1,6 @@
 package com.sph.easytool.conf
 
+import org.apache.commons.lang3.StringUtils
 import org.json4s.jackson.JsonMethods
 import org.json4s.{DefaultFormats, Formats}
 import pl.jalokim.propertiestojson.util.PropertiesToJsonConverter
@@ -101,18 +102,25 @@ class Props extends mutable.HashMap[String, String] {
 
   /**
     * bind props to case class
+    * @param prefix prefix from bind case class
     * @param formats json4s formats, such as #EnumNameSerializer
     * @param mf Manifest
     * @tparam T case class type
     * @return case class object
     */
   def bind[T <: Product](
+      prefix: String = "",
       formats: Formats = DefaultFormats
-  )(implicit mf: scala.reflect.Manifest[T]): T = {
+  )(implicit
+      mf: scala.reflect.Manifest[T]
+  ): T = {
     val converter = new PropertiesToJsonConverter()
-    JsonMethods
+    var jValue = JsonMethods
       .parse(converter.convertToJson(this.asJava))
       .camelizeKeys
+    if (StringUtils.isNoneBlank(prefix))
+      jValue = jValue.\\(prefix)
+    jValue
       .extract[T](formats, mf)
   }
 
