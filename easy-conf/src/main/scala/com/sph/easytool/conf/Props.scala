@@ -17,6 +17,11 @@ import scala.tools.nsc.interpreter.InputStream
 class Props extends mutable.HashMap[String, String] {
 
   /**
+    * default converter to convert string to string
+    */
+  implicit val stringConverter: String => String = identity
+
+  /**
     * properties add to this
     * @param properties properties
     */
@@ -74,7 +79,7 @@ class Props extends mutable.HashMap[String, String] {
     * @tparam T the type in list
     * @return values
     */
-  def getList[T](key: String, separator: String = ",")(
+  def getList[T](key: String, separator: String = ",")(implicit
       convert: String => T
   ): List[T] = {
     this.getOrElse(key, "").split(separator).toList.map(convert)
@@ -119,8 +124,7 @@ class Props extends mutable.HashMap[String, String] {
       .parse(converter.convertToJson(this.asJava))
     if (StringUtils.isNoneBlank(prefix))
       jValue = jValue.\\(prefix)
-    jValue
-      .camelizeKeys
+    jValue.camelizeKeys
       .extract[T](formats, mf)
   }
 
