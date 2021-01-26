@@ -123,7 +123,11 @@ class Props extends mutable.HashMap[String, String] {
     var jValue = JsonMethods
       .parse(converter.convertToJson(this.asJava))
     if (StringUtils.isNoneBlank(prefix))
-      jValue = jValue.\\(prefix)
+      prefix
+        .split("\\.")
+        .foreach(p => {
+          jValue = jValue \\ p
+        })
     jValue.camelizeKeys
       .extract[T](formats, mf)
   }
