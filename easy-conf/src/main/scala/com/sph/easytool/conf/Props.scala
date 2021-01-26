@@ -79,10 +79,18 @@ class Props extends mutable.HashMap[String, String] {
     * @tparam T the type in list
     * @return values
     */
-  def getList[T](key: String, separator: String = ",")(implicit
-      convert: String => T
-  ): List[T] = {
-    this.getOrElse(key, "").split(separator).toList.map(convert)
+  def getList[T](
+      key: String,
+      start: String = "[",
+      separator: String = ",",
+      end: String = "]"
+  )(implicit convert: String => T): List[T] = {
+    val value = this.getOrElse(key, start + end)
+    value
+      .substring(start.length, value.length - end.length)
+      .split(separator)
+      .map(convert)
+      .toList
   }
 
   /**

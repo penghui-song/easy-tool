@@ -197,7 +197,7 @@ class Config(
               e.map(m => (ele._1 + "." + m._1, m._2.asInstanceOf[Object]))
             )
           )
-        case e: java.util.List[_] => ps.put(ele._1, e.mkString(","))
+        case e: java.util.List[_] => ps.put(ele._1, e.mkString("[", ",", "]"))
         case _                    => ps.put(ele._1, ele._2.toString)
       }
     })
